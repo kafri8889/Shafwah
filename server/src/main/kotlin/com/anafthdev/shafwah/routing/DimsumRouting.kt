@@ -3,32 +3,31 @@ package com.anafthdev.shafwah.routing
 import com.anafthdev.shafwah.common.checkId
 import com.anafthdev.shafwah.common.checkParams
 import com.anafthdev.shafwah.common.checkQueries
-import com.anafthdev.shafwah.service.IceTeaService
+import com.anafthdev.shafwah.service.DimsumService
 import com.google.gson.Gson
-import data.IceTeaVariant
+import data.model.Dimsum
+import data.model.response.ErrorResponse
+import data.model.response.dimsum.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import data.model.IceTea
-import data.model.response.ErrorResponse
-import data.model.response.ice_tea.*
 
-private suspend fun ApplicationCall.receiveIceTea(): IceTea? {
+private suspend fun ApplicationCall.receiveDimsum(): Dimsum? {
     return try {
-        receive(IceTea::class)
+        receive(Dimsum::class)
     } catch (e: BadRequestException) {
         e.printStackTrace()
         null
     }
 }
 
-private suspend fun ApplicationCall.receiveIceTeaArray(): Array<IceTea>? {
+private suspend fun ApplicationCall.receiveDimsumArray(): Array<Dimsum>? {
     return try {
         println(receiveText())
-        Gson().fromJson(receiveText(), Array<IceTea>::class.java)
+        Gson().fromJson(receiveText(), Array<Dimsum>::class.java)
     } catch (e: BadRequestException) {
         e.printStackTrace()
         respond(
@@ -43,16 +42,16 @@ private suspend fun ApplicationCall.receiveIceTeaArray(): Array<IceTea>? {
     }
 }
 
-fun Routing.iceTeaRouting(iceTeaService: IceTeaService) {
+fun Routing.dimsumRouting(dimsumService: DimsumService) {
 
     // Get all record
-    get("/iceTea") {
-        val iceTeaList = iceTeaService.getAll()
+    get("/dimsum") {
+        val dimsumList = dimsumService.getAll()
         val response = Gson().toJson(
-            GetMultipleIceTeaResponse(
+            GetMultipleDimsumResponse(
                 message = "Get all record successfully",
                 status = HttpStatusCode.OK.value,
-                data = iceTeaList
+                data = dimsumList
             )
         )
 
@@ -64,16 +63,16 @@ fun Routing.iceTeaRouting(iceTeaService: IceTeaService) {
     }
 
     // Get record by ID
-    // route: /iceTea/123
-    get("/iceTea/{id}") {
+    // route: /dimsum/123
+    get("/dimsum/{id}") {
         val id = call.parameters["id"]?.toLong()
 
         checkId(id)
 
-        val iceTea = iceTeaService.getById(id)
-        val response = if (iceTea == null) {
+        val dimsum = dimsumService.getById(id)
+        val response = if (dimsum == null) {
             Gson().toJson(
-                GetSingleIceTeaResponse(
+                GetSingleDimsumResponse(
                     message = "Not found",
                     status = HttpStatusCode.NotFound.value,
                     data = null
@@ -81,32 +80,54 @@ fun Routing.iceTeaRouting(iceTeaService: IceTeaService) {
             )
         } else {
             Gson().toJson(
-                GetSingleIceTeaResponse(
+                GetSingleDimsumResponse(
                     message = "Success",
                     status = HttpStatusCode.OK.value,
-                    data = iceTea
+                    data = dimsum
                 )
             )
         }
 
         call.respondText(
             contentType = ContentType.Application.Json,
-            status = if (iceTea == null) HttpStatusCode.NotFound else HttpStatusCode.OK,
+            status = if (dimsum == null) HttpStatusCode.NotFound else HttpStatusCode.OK,
             provider = { response }
         )
     }
 
+    // Get record by amount
+    // route: /dimsum/amount/10
+    get("/dimsum/amount/{amount}") {
+        checkParams("amount") {
+            val amount = call.parameters["amount"]!!.toInt()
+            val dimsum = dimsumService.getByAmount(amount)
+            val response = Gson().toJson(
+                GetMultipleDimsumResponse(
+                    message = "Success",
+                    status = HttpStatusCode.OK.value,
+                    data = dimsum
+                )
+            )
+
+            call.respondText(
+                contentType = ContentType.Application.Json,
+                status = HttpStatusCode.OK,
+                provider = { response }
+            )
+        }
+    }
+
     // Get record by date range
-    get("/iceTea/date-range") {
+    get("/dimsum/date-range") {
         checkQueries("from", "to") {
             val from = call.request.queryParameters["from"]!!.toLong()
             val to = call.request.queryParameters["to"]!!.toLong()
-            val iceTeaList = iceTeaService.getByDateRange(from, to)
+            val dimsumList = dimsumService.getByDateRange(from, to)
             val response = Gson().toJson(
-                GetMultipleIceTeaResponse(
+                GetMultipleDimsumResponse(
                     message = "Get record by date range successfully",
                     status = HttpStatusCode.OK.value,
-                    data = iceTeaList
+                    data = dimsumList
                 )
             )
 
@@ -119,16 +140,16 @@ fun Routing.iceTeaRouting(iceTeaService: IceTeaService) {
     }
 
     // Get record by price range
-    get("/iceTea/price-range") {
+    get("/dimsum/price-range") {
         checkQueries("from", "to") {
             val from = call.request.queryParameters["from"]!!.toDouble()
             val to = call.request.queryParameters["to"]!!.toDouble()
-            val iceTeaList = iceTeaService.getByPriceRange(from, to)
+            val dimsumList = dimsumService.getByPriceRange(from, to)
             val response = Gson().toJson(
-                GetMultipleIceTeaResponse(
+                GetMultipleDimsumResponse(
                     message = "Get record by price range successfully",
                     status = HttpStatusCode.OK.value,
-                    data = iceTeaList
+                    data = dimsumList
                 )
             )
 
@@ -141,59 +162,18 @@ fun Routing.iceTeaRouting(iceTeaService: IceTeaService) {
     }
 
     // Get record by date and price range
-    get("/iceTea/date-price-range") {
+    get("/dimsum/date-price-range") {
         checkQueries("dateFrom", "dateTo", "priceFrom", "priceTo") {
             val dateFrom = call.request.queryParameters["dateFrom"]!!.toLong()
             val dateTo = call.request.queryParameters["dateTo"]!!.toLong()
             val priceFrom = call.request.queryParameters["dateTo"]!!.toDouble()
             val priceTo = call.request.queryParameters["priceTo"]!!.toDouble()
-            val iceTeaList = iceTeaService.getByPriceRangeAndDateRange(dateFrom, dateTo, priceFrom, priceTo)
+            val dimsumList = dimsumService.getByPriceRangeAndDateRange(dateFrom, dateTo, priceFrom, priceTo)
             val response = Gson().toJson(
-                GetMultipleIceTeaResponse(
+                GetMultipleDimsumResponse(
                     message = "Get record by date and price range successfully",
                     status = HttpStatusCode.OK.value,
-                    data = iceTeaList
-                )
-            )
-
-            call.respondText(
-                contentType = ContentType.Application.Json,
-                status = HttpStatusCode.OK,
-                provider = { response }
-            )
-        }
-    }
-
-    // Get record by variant
-    get("/iceTea/variant/{variant}") {
-        checkParams("variant") {
-            val ordinal = call.parameters["variant"]!!.toInt()
-
-            if (ordinal >= IceTeaVariant.entries.size) {
-                call.respondText(
-                    contentType = ContentType.Application.Json,
-                    status = HttpStatusCode.NotFound,
-                    provider = {
-                        Gson().toJson(
-                            ErrorResponse(
-                                message = "Variant code not found. Available code from 0 until ${IceTeaVariant.entries.lastIndex}, but was $ordinal",
-                                status = HttpStatusCode.NotFound.value,
-                                data = null
-                            )
-                        )
-                    }
-                )
-
-                return@checkParams
-            }
-
-            val variant = IceTeaVariant.entries[ordinal]
-            val iceTeaList = iceTeaService.getByVariant(variant)
-            val response = Gson().toJson(
-                GetMultipleIceTeaResponse(
-                    message = "Get record by variant ${variant.name} successfully",
-                    status = HttpStatusCode.OK.value,
-                    data = iceTeaList
+                    data = dimsumList
                 )
             )
 
@@ -206,10 +186,10 @@ fun Routing.iceTeaRouting(iceTeaService: IceTeaService) {
     }
 
     // Delete all record
-    delete("/iceTea") {
-        val rows = iceTeaService.deleteAll()
+    delete("/dimsum") {
+        val rows = dimsumService.deleteAll()
         val response = Gson().toJson(
-            DeleteIceTeaResponse(
+            DeleteDimsumResponse(
                 message = "Delete all record successfully",
                 status = HttpStatusCode.OK.value,
                 data = rows
@@ -224,15 +204,15 @@ fun Routing.iceTeaRouting(iceTeaService: IceTeaService) {
     }
 
     // Delete record by ID
-    // route: /iceTea/123
-    delete("/iceTea/{id}") {
+    // route: /dimsum/123
+    delete("/dimsum/{id}") {
         val id = call.parameters["id"]?.toLong()
 
         checkId(id)
 
-        val rows = iceTeaService.deleteById(id)
+        val rows = dimsumService.deleteById(id)
         val response = Gson().toJson(
-            DeleteIceTeaResponse(
+            DeleteDimsumResponse(
                 message = "Successfully deleted record with ID $id",
                 status = HttpStatusCode.OK.value,
                 data = rows
@@ -247,13 +227,13 @@ fun Routing.iceTeaRouting(iceTeaService: IceTeaService) {
     }
 
     // Delete record by date range
-    delete("/iceTea/date-range") {
+    delete("/dimsum/date-range") {
         checkQueries("from", "to") {
             val from = call.request.queryParameters["from"]!!.toLong()
             val to = call.request.queryParameters["to"]!!.toLong()
-            val rows = iceTeaService.deleteByDateRange(from, to)
+            val rows = dimsumService.deleteByDateRange(from, to)
             val response = Gson().toJson(
-                DeleteIceTeaResponse(
+                DeleteDimsumResponse(
                     message = "Delete record by date range successfully",
                     status = HttpStatusCode.OK.value,
                     data = rows
@@ -269,12 +249,12 @@ fun Routing.iceTeaRouting(iceTeaService: IceTeaService) {
     }
 
     // Update by id
-    put("/iceTea") {
-        val newIceTea = call.receiveIceTea() ?: return@put
-        val updatedRows = iceTeaService.update(newIceTea)
+    put("/dimsum") {
+        val newDimsum = call.receiveDimsum() ?: return@put
+        val updatedRows = dimsumService.update(newDimsum)
         val response = Gson().toJson(
-            UpdateIceTeaResponse(
-                message = "Successfully updated record with ID ${newIceTea.id}",
+            UpdateDimsumResponse(
+                message = "Successfully updated record with ID ${newDimsum.id}",
                 status = HttpStatusCode.OK.value,
                 data = updatedRows
             )
@@ -288,14 +268,14 @@ fun Routing.iceTeaRouting(iceTeaService: IceTeaService) {
     }
 
     // Update record by date range
-    put("/iceTea/date-range") {
+    put("/dimsum/date-range") {
         checkQueries("from", "to") {
-            val newIceTea = call.receiveIceTea() ?: return@checkQueries
+            val newDimsum = call.receiveDimsum() ?: return@checkQueries
             val from = call.request.queryParameters["from"]!!.toLong()
             val to = call.request.queryParameters["to"]!!.toLong()
-            val rows = iceTeaService.updateByDateRange(from, to, newIceTea)
+            val rows = dimsumService.updateByDateRange(from, to, newDimsum)
             val response = Gson().toJson(
-                DeleteIceTeaResponse(
+                DeleteDimsumResponse(
                     message = "Update record by date range successfully",
                     status = HttpStatusCode.OK.value,
                     data = rows
@@ -311,14 +291,14 @@ fun Routing.iceTeaRouting(iceTeaService: IceTeaService) {
     }
 
     // Update record by price range
-    put("/iceTea/price-range") {
+    put("/dimsum/price-range") {
         checkQueries("from", "to") {
-            val newIceTea = call.receiveIceTea() ?: return@checkQueries
+            val newDimsum = call.receiveDimsum() ?: return@checkQueries
             val from = call.request.queryParameters["from"]!!.toDouble()
             val to = call.request.queryParameters["to"]!!.toDouble()
-            val rows = iceTeaService.updateByPriceRange(from, to, newIceTea)
+            val rows = dimsumService.updateByPriceRange(from, to, newDimsum)
             val response = Gson().toJson(
-                DeleteIceTeaResponse(
+                DeleteDimsumResponse(
                     message = "Update record by price range successfully",
                     status = HttpStatusCode.OK.value,
                     data = rows
@@ -334,24 +314,23 @@ fun Routing.iceTeaRouting(iceTeaService: IceTeaService) {
     }
 
     // Insert record
-    post("/iceTea") {
-//        val iceTea = Gson().fromJson(call.receiveText(), IceTea::class.java)
-        val iceTea = call.receiveIceTea() // if return null, input maybe array
-        val iceTeas = if (iceTea == null) { // get as array, if null, ada kesalahan
-            call.receiveIceTeaArray()
+    post("/dimsum") {
+        val dimsum = call.receiveDimsum() // if return null, input maybe array
+        val dimsums = if (dimsum == null) { // get as array, if null, ada kesalahan
+            call.receiveDimsumArray()
         } else null
-        val iceTeaToInsert = arrayListOf<IceTea>().apply {
-            if (iceTea != null) add(iceTea)
-            if (iceTeas != null) addAll(iceTeas)
+        val dimsumToInsert = arrayListOf<Dimsum>().apply {
+            if (dimsum != null) add(dimsum)
+            if (dimsums != null) addAll(dimsums)
         }
 
-        for (tea in iceTeaToInsert) iceTeaService.insert(tea)
+        for (tea in dimsumToInsert) dimsumService.insert(tea)
 
         val response = Gson().toJson(
-            InsertIceTeaResponse(
+            InsertDimsumResponse(
                 message = "Insert success",
                 status = HttpStatusCode.Created.value,
-                data = iceTeaToInsert.size
+                data = dimsumToInsert.size
             )
         )
 

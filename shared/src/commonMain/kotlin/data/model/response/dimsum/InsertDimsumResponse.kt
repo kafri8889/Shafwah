@@ -1,14 +1,15 @@
-package data.response
+package data.model.response.dimsum
 
+import data.model.response.CommonSingleResponse
 import kotlinx.serialization.Serializable
 
 /**
- * Update ice tea API response
+ * Insert dimsum API response
  *
- * @param data Number of updated rows
+ * @param data Inserted rows
  */
 @Serializable
-data class UpdateIceTeaResponse(
+data class InsertDimsumResponse(
     override val message: String,
     override val status: Int,
     override val data: Int

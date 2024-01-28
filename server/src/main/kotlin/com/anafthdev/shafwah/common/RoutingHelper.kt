@@ -1,7 +1,7 @@
 package com.anafthdev.shafwah.common
 
 import com.google.gson.Gson
-import data.response.ErrorResponse
+import data.model.response.ErrorResponse
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -22,7 +22,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.checkQueries(
                 contentType = ContentType.Application.Json,
                 text = Gson().toJson(
                     ErrorResponse(
-                        message = "Bad request: \"${queries[i]}\" query not found",
+                        message = "Bad request: \"${queries[i]}\" query not found in url. Did you forget it?",
                         status = HttpStatusCode.BadRequest.value,
                         data = null
                     )

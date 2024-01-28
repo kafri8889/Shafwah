@@ -1,13 +1,12 @@
-package model
+package data.model
 
-import data.IceTeaVariant
-import kotlinx.serialization.Serializable
+/**
+ * Base class untuk produk yg dijual, contohnya es teh, dimsum, jus, dll.
+ */
+interface Product {
 
-@Serializable
-data class IceTea(
-    val id: Long,
-    val variant: IceTeaVariant,
-    val createdAt: Long,
+    val id: Long
+    val name: String
     /**
      * price on date [createdAt]
      *
@@ -15,4 +14,6 @@ data class IceTea(
      * record data bulan sebelumnya (januari) tetep 5k, tapi dibulan febuari dst 6k
      */
     val price: Double
-)
+    val createdAt: Long
+
+}

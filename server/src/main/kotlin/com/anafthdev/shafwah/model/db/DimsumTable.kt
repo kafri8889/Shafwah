@@ -3,8 +3,9 @@ package com.anafthdev.shafwah.model.db
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.Column
 
-object IceTeaTable: LongIdTable(), Product {
+object DimsumTable: LongIdTable(), Product {
     override val createdAt: Column<Long> = long("createdAt")
     override val price: Column<Double> = double("price")
-    val variant: Column<Int> = integer("variant")
+    val unitPrice: Column<Double> = double("unitPrice")
+    val amount: Column<Int> = integer("amount")
 }

@@ -1,6 +1,8 @@
 package com.anafthdev.shafwah.plugins
 
+import com.anafthdev.shafwah.routing.dimsumRouting
 import com.anafthdev.shafwah.routing.iceTeaRouting
+import com.anafthdev.shafwah.service.DimsumService
 import com.anafthdev.shafwah.service.IceTeaService
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -18,10 +20,12 @@ fun Application.configureDatabases() {
     )
 
     val userService = UserService(database)
-    val iceTeaServices = IceTeaService(database)
+    val iceTeaService = IceTeaService(database)
+    val dimsumService = DimsumService(database)
 
     routing {
-        iceTeaRouting(iceTeaServices)
+        iceTeaRouting(iceTeaService)
+        dimsumRouting(dimsumService)
 
         // Create user
         post("/users") {

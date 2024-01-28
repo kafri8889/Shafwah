@@ -3,13 +3,13 @@ package com.anafthdev.shafwah.service
 import com.anafthdev.shafwah.common.dbQuery
 import com.anafthdev.shafwah.model.db.IceTeaTable
 import data.IceTeaVariant
-import model.IceTea
+import data.model.IceTea
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.between
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class IceTeaService(private val database: Database) {
+class IceTeaService(database: Database) {
 
     private fun ResultRow.toIceTea(): IceTea {
         return IceTea(
@@ -66,8 +66,8 @@ class IceTeaService(private val database: Database) {
     /**
      * Get ice tea by price range
      *
-     * @param from start price in Rupiah e.g: 5000.0, 3000.0
-     * @param to end price in Rupiah e.g: 5000.0, 3000.0
+     * @param from start price in Rupiah e.g: 5000.0, 3000.0. inclusive
+     * @param to end price in Rupiah e.g: 5000.0, 3000.0. inclusive
      */
     suspend fun getByPriceRange(from: Double, to: Double): List<IceTea> {
         return dbQuery {
@@ -82,8 +82,8 @@ class IceTeaService(private val database: Database) {
      *
      * @param dateFrom start date in millis
      * @param dateTo end date in millis
-     * @param priceFrom start price in Rupiah e.g: 5000.0, 3000.0
-     * @param priceTo end price in Rupiah e.g: 5000.0, 3000.0
+     * @param priceFrom start price in Rupiah e.g: 5000.0, 3000.0. inclusive
+     * @param priceTo end price in Rupiah e.g: 5000.0, 3000.0. inclusive
      * @return ice tea list
      */
     suspend fun getByPriceRangeAndDateRange(
@@ -200,8 +200,8 @@ class IceTeaService(private val database: Database) {
     /**
      * Update record by date range
      *
-     * @param from start price in Rupiah e.g: 5000.0, 3000.0
-     * @param to end price in Rupiah e.g: 5000.0, 3000.0
+     * @param from start price in Rupiah e.g: 5000.0, 3000.0. inclusive
+     * @param to end price in Rupiah e.g: 5000.0, 3000.0. inclusive
      * @return number of updated rows
      */
     suspend fun updateByPriceRange(

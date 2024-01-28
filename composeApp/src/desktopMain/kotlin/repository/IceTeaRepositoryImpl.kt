@@ -1,9 +1,9 @@
 package repository
 
-import data.response.InsertIceTeaResponse
+import data.model.response.ice_tea.InsertIceTeaResponse
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import model.IceTea
+import data.model.IceTea
 import networking.KtorClient
 
 class IceTeaRepositoryImpl: IceTeaRepository {

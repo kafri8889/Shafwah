@@ -33,7 +33,7 @@ fun Application.configureRouting() {
         post("/double-receive") {
             val first = call.receiveText()
             val theSame = call.receiveText()
-            call.respondText(first + " " + theSame)
+            call.respondText("$first $theSame")
         }
     }
 }

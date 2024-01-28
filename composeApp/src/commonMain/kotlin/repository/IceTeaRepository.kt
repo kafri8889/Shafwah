@@ -1,7 +1,7 @@
 package repository
 
-import data.response.InsertIceTeaResponse
-import model.IceTea
+import data.model.response.ice_tea.InsertIceTeaResponse
+import data.model.IceTea
 
 interface IceTeaRepository {
 

@@ -1,4 +1,4 @@
-package data.response
+package data.model.response
 
 /**
  * Response api umum dengan format

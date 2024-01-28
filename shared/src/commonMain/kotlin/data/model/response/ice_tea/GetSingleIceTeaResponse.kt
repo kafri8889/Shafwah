@@ -1,7 +1,8 @@
-package data.response
+package data.model.response.ice_tea
 
+import data.model.response.CommonSingleResponse
 import kotlinx.serialization.Serializable
-import model.IceTea
+import data.model.IceTea
 
 @Serializable
 data class GetSingleIceTeaResponse(

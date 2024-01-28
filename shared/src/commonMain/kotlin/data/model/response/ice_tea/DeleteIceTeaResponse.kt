@@ -1,5 +1,6 @@
-package data.response
+package data.model.response.ice_tea
 
+import data.model.response.CommonSingleResponse
 import kotlinx.serialization.Serializable
 
 /**

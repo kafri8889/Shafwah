@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import model.IceTea
+import data.model.IceTea
 import repository.IceTeaRepository
 import kotlin.random.Random
 

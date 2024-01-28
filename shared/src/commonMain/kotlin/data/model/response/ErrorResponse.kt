@@ -1,4 +1,4 @@
-package data.response
+package data.model.response
 
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable

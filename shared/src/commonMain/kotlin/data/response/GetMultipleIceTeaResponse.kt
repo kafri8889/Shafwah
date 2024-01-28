@@ -1,4 +1,4 @@
-package com.anafthdev.shafwah.model.response
+package data.response
 
 import kotlinx.serialization.Serializable
 import model.IceTea

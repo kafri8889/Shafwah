@@ -3,10 +3,10 @@ package com.anafthdev.shafwah.routing
 import com.anafthdev.shafwah.common.checkId
 import com.anafthdev.shafwah.common.checkParams
 import com.anafthdev.shafwah.common.checkQueries
-import com.anafthdev.shafwah.model.response.*
 import com.anafthdev.shafwah.service.IceTeaService
 import com.google.gson.Gson
 import data.IceTeaVariant
+import data.response.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
@@ -18,6 +18,16 @@ import model.IceTea
 private suspend fun ApplicationCall.receiveIceTea(): IceTea? {
     return try {
         receive(IceTea::class)
+    } catch (e: BadRequestException) {
+        e.printStackTrace()
+        null
+    }
+}
+
+private suspend fun ApplicationCall.receiveIceTeaArray(): Array<IceTea>? {
+    return try {
+        println(receiveText())
+        Gson().fromJson(receiveText(), Array<IceTea>::class.java)
     } catch (e: BadRequestException) {
         e.printStackTrace()
         respond(
@@ -325,13 +335,22 @@ fun Routing.iceTeaRouting(iceTeaService: IceTeaService) {
     // Insert record
     post("/iceTea") {
 //        val iceTea = Gson().fromJson(call.receiveText(), IceTea::class.java)
-        val iceTea = call.receiveIceTea() ?: return@post
-        val id = iceTeaService.insert(iceTea)
+        val iceTea = call.receiveIceTea() // if return null, input maybe array
+        val iceTeas = if (iceTea == null) { // get as array, if null, ada kesalahan
+            call.receiveIceTeaArray()
+        } else null
+        val iceTeaToInsert = arrayListOf<IceTea>().apply {
+            if (iceTea != null) add(iceTea)
+            if (iceTeas != null) addAll(iceTeas)
+        }
+
+        for (tea in iceTeaToInsert) iceTeaService.insert(tea)
+
         val response = Gson().toJson(
             InsertIceTeaResponse(
                 message = "Insert success",
                 status = HttpStatusCode.Created.value,
-                data = id
+                data = iceTeaToInsert.size
             )
         )
 

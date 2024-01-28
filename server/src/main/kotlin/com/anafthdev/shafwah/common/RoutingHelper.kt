@@ -1,7 +1,7 @@
 package com.anafthdev.shafwah.common
 
-import com.anafthdev.shafwah.model.response.ErrorResponse
 import com.google.gson.Gson
+import data.response.ErrorResponse
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*

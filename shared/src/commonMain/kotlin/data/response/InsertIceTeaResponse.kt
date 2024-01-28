@@ -1,15 +1,15 @@
-package com.anafthdev.shafwah.model.response
+package data.response
 
 import kotlinx.serialization.Serializable
 
 /**
  * Insert ice tea API response
  *
- * @param data Record ID
+ * @param data Inserted rows
  */
 @Serializable
 data class InsertIceTeaResponse(
     override val message: String,
     override val status: Int,
-    override val data: Long
-): CommonSingleResponse<Long>
+    override val data: Int
+): CommonSingleResponse<Int>

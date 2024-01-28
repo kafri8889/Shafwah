@@ -1,4 +1,4 @@
-package com.anafthdev.shafwah.model.response
+package data.response
 
 /**
  * Response api umum dengan format
@@ -7,12 +7,12 @@ package com.anafthdev.shafwah.model.response
  * {
  * 	"message": "message",
  * 	"status": 200,
- * 	"data": null
+ * 	"data": []
  * }
  * ```
  */
-interface CommonSingleResponse<T> {
+interface CommonMultipleResponse<E> {
 	val message: String
 	val status: Int
-	val data: T?
+	val data: List<E>
 }

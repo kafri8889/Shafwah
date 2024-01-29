@@ -13,8 +13,8 @@ import org.jetbrains.exposed.sql.Database
 
 fun Application.configureDatabases() {
     val database = Database.connect(
-        url = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
-        user = "root",
+        url = "jdbc:h2:file:E:\\DOCUMENTS_V2\\Multiplatform Project\\Shafwah\\server\\db\\product;AUTO_SERVER=TRUE",
+        user = "",
         driver = "org.h2.Driver",
         password = ""
     )

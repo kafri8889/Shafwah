@@ -132,8 +132,8 @@ class DimsumService(database: Database) {
     /**
      * Delete record by date range
      *
-     * @param from start date in millis
-     * @param to end date in millis
+     * @param from start date in millis (inclusive)
+     * @param to end date in millis (inclusive)
      *
      * @return number of deleted rows
      */

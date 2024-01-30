@@ -25,13 +25,58 @@ import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun IceTeaVariantItem(
+fun IceTeaProductItem(
     count: Int,
     variant: IceTeaVariant,
     modifier: Modifier = Modifier,
     onValueChange: (Int) -> Unit
-) {
+) = ProductItemCore(
+    count = count,
+    price = variant.price,
+    modifier = modifier,
+    onValueChange = onValueChange,
+    image = {
+        Image(
+            painter = painterResource(variant.drawableRes),
+            contentDescription = null,
+            modifier = Modifier
+                .matchParentSize()
+        )
+    }
+)
 
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+fun DimsumProductItem(
+    count: Int,
+    price: Double,
+    imageRes: String,
+    modifier: Modifier = Modifier,
+    onValueChange: (Int) -> Unit
+) = ProductItemCore(
+    count = count,
+    price = price,
+    modifier = modifier,
+    onValueChange = onValueChange,
+    image = {
+        Image(
+            painter = painterResource(imageRes),
+            contentDescription = null,
+            modifier = Modifier
+                .padding(8.dp)
+                .matchParentSize()
+        )
+    }
+)
+
+@Composable
+private fun ProductItemCore(
+    count: Int,
+    price: Double,
+    modifier: Modifier = Modifier,
+    onValueChange: (Int) -> Unit,
+    image: @Composable BoxScope.() -> Unit
+) {
     Card(
         shape = MaterialTheme.shapes.small,
         modifier = modifier,
@@ -42,18 +87,18 @@ fun IceTeaVariantItem(
             containerColor = Color.White
         )
     ) {
-        Image(
-            painter = painterResource(variant.drawableRes),
-            contentDescription = null,
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f/1f)
-        )
+        ) {
+            image()
+        }
 
         Spacer(Modifier.height(8.dp))
 
         Text(
-            text = CurrencyUtil.toRupiah(variant.price.toInt()),
+            text = CurrencyUtil.toRupiah(price.toInt()),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.titleMedium.copy(
                 color = MaterialTheme.colorScheme.primary

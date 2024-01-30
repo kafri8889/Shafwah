@@ -5,6 +5,7 @@ import androidx.compose.ui.window.application
 import moe.tlaster.precompose.PreComposeApp
 import moe.tlaster.precompose.navigation.NavHost
 import moe.tlaster.precompose.navigation.rememberNavigator
+import repository.DimsumRepositoryImpl
 import repository.IceTeaRepositoryImpl
 import ui.home.HomeScreen
 
@@ -29,7 +30,7 @@ private fun DesktopApp() {
         scene(
             route = Destinations.home.route
         ) { backStackEntry ->
-            HomeScreen(IceTeaRepositoryImpl())
+            HomeScreen(IceTeaRepositoryImpl(), DimsumRepositoryImpl())
         }
     }
 }

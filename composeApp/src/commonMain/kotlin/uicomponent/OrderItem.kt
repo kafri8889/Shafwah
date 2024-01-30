@@ -17,10 +17,56 @@ import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-fun OrderItem(
+fun IceTeaOrderItem(
     count: Int,
-    iceTeaVariant: IceTeaVariant,
+    variant: IceTeaVariant,
     modifier: Modifier = Modifier
+) = CoreOrderItem(
+    count = count,
+    name = variant.displayName,
+    price = variant.price,
+    modifier = modifier,
+    image = {
+        Image(
+            painter = painterResource(variant.drawableRes),
+            contentDescription = null,
+            modifier = Modifier
+                .matchParentSize()
+        )
+    }
+)
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+fun DimsumOrderItem(
+    count: Int,
+    name: String,
+    price: Double,
+    imageRes: String,
+    modifier: Modifier = Modifier
+) = CoreOrderItem(
+    count = count,
+    name = name,
+    price = price,
+    modifier = modifier,
+    image = {
+        Image(
+            painter = painterResource(imageRes),
+            contentDescription = null,
+            modifier = Modifier
+                .matchParentSize()
+        )
+    }
+)
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+private fun CoreOrderItem(
+    count: Int,
+    name: String,
+    price: Double,
+    modifier: Modifier = Modifier,
+    image: @Composable BoxScope.() -> Unit
 ) {
 
     BoxWithConstraints {
@@ -28,13 +74,13 @@ fun OrderItem(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = modifier
         ) {
-            Image(
-                painter = painterResource(iceTeaVariant.drawableRes),
-                contentDescription = null,
+            Box(
                 modifier = Modifier
                     .size(64.dp)
                     .clip(RoundedCornerShape(10))
-            )
+            ) {
+                image()
+            }
 
             Column(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -42,7 +88,7 @@ fun OrderItem(
                     .height(this@BoxWithConstraints.maxHeight)
             ) {
                 Text(
-                    text = iceTeaVariant.displayName,
+                    text = name,
                     style = MaterialTheme.typography.titleMedium
                 )
 
@@ -59,7 +105,7 @@ fun OrderItem(
                     )
 
                     Text(
-                        text = CurrencyUtil.toRupiah(iceTeaVariant.price.toInt() * count),
+                        text = CurrencyUtil.toRupiah(price.toInt() * count),
                         textAlign = TextAlign.End,
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier

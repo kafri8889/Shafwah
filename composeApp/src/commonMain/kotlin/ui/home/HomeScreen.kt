@@ -1,6 +1,7 @@
 package ui.home
 
 import CurrencyUtil
+import DIMSUM_PER_PIECE
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -8,8 +9,11 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -18,18 +22,19 @@ import base.UiEvent
 import data.IceTeaVariant
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
+import repository.DimsumRepository
 import repository.IceTeaRepository
-import uicomponent.DashedDivider
-import uicomponent.IceTeaVariantItem
-import uicomponent.OrderItem
+import uicomponent.*
 import uicomponent.bubble_bar.*
 
 @Composable
 fun HomeScreen(
-    iceTeaRepository: IceTeaRepository
-) = ComposableViewModel(factory = { HomeViewModel(iceTeaRepository) }) { viewModel ->
+    iceTeaRepository: IceTeaRepository,
+    dimsumRepository: DimsumRepository
+) = ComposableViewModel(factory = { HomeViewModel(iceTeaRepository, dimsumRepository) }) { viewModel ->
 
-    val orders by viewModel.orders.collectAsState()
+    val iceTeaOrders by viewModel.iceTeaOrders.collectAsState()
+    val dimsumOrders by viewModel.dimsumOrders.collectAsState()
     val isOrdering by viewModel.isOrdering.collectAsState()
 
     val bubbleHostState = remember { BubbleBarHostState() }
@@ -84,14 +89,23 @@ fun HomeScreen(
                     items(
                         items = IceTeaVariant.entries
                     ) { variant ->
-                        IceTeaVariantItem(
-                            count = orders[variant] ?: 0,
+                        IceTeaProductItem(
+                            count = iceTeaOrders[variant] ?: 0,
                             variant = variant,
                             onValueChange = { newCount ->
-                                viewModel.changeOrderCount(variant, newCount)
+                                viewModel.changeIceTeaOrderCount(variant, newCount)
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
+                        )
+                    }
+
+                    item {
+                        DimsumProductItem(
+                            count = dimsumOrders,
+                            price = DIMSUM_PER_PIECE,
+                            imageRes = "dimsum.png",
+                            onValueChange = viewModel::changeDimsumOrderCount
                         )
                     }
                 }
@@ -109,9 +123,11 @@ fun HomeScreen(
                         .weight(0.2f)
                 ) {
                     OrderContent(
-                        orders = orders,
+                        iceTeaOrders = iceTeaOrders,
+                        dimsumOrders = dimsumOrders,
                         isOrdering = isOrdering,
                         onPlaceOrder = viewModel::placeOrder,
+                        onClearAllOrders = viewModel::clearOrders,
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(16.dp)
@@ -124,41 +140,76 @@ fun HomeScreen(
 
 @Composable
 private fun OrderContent(
-    orders: Map<IceTeaVariant, Int>,
+    iceTeaOrders: Map<IceTeaVariant, Int>,
+    dimsumOrders: Int,
     isOrdering: Boolean,
     modifier: Modifier = Modifier,
-    onPlaceOrder: () -> Unit
+    onPlaceOrder: () -> Unit,
+    onClearAllOrders: () -> Unit
 ) {
 
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
     ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = "Clear all orders",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            IconButton(onClick = onClearAllOrders) {
+                Icon(
+                    imageVector = Icons.Rounded.Clear,
+                    contentDescription = null
+                )
+            }
+        }
+
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .weight(1f)
         ) {
             items(
-                items = orders.keys.toList()
+                items = iceTeaOrders.keys.toList()
             ) { order ->
-                OrderItem(
-                    count = orders[order]!!,
-                    iceTeaVariant = order,
+                IceTeaOrderItem(
+                    count = iceTeaOrders[order]!!,
+                    variant = order,
                     modifier = Modifier
                         .fillMaxWidth()
                 )
             }
+
+            if (dimsumOrders > 0) {
+                item {
+                    DimsumOrderItem(
+                        count = dimsumOrders,
+                        name = "Dimsum",
+                        price = DIMSUM_PER_PIECE,
+                        imageRes = "dimsum.png",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                }
+            }
         }
 
         PaymentSummary(
-            orders = orders,
+            iceTeaOrders = iceTeaOrders,
+            dimsumOrders = dimsumOrders,
             modifier = Modifier
                 .fillMaxWidth()
         )
 
         Button(
-            enabled = orders.isNotEmpty() and !isOrdering,
+            enabled = (iceTeaOrders.isNotEmpty() || dimsumOrders > 0) and !isOrdering,
             onClick = onPlaceOrder,
             modifier = Modifier
                 .fillMaxWidth()
@@ -175,18 +226,23 @@ private fun OrderContent(
 
 @Composable
 private fun PaymentSummary(
-    orders: Map<IceTeaVariant, Int>,
+    iceTeaOrders: Map<IceTeaVariant, Int>,
+    dimsumOrders: Int,
     modifier: Modifier = Modifier
 ) {
 
-    val iceTea = remember(orders) {
-        orders.map {
+    val iceTeaTotal = remember(iceTeaOrders) {
+        iceTeaOrders.map {
             it.key.price * it.value
         }.sum()
     }
 
-    val total = remember(iceTea) {
-        iceTea
+    val dimsumTotal = remember(dimsumOrders) {
+        dimsumOrders * DIMSUM_PER_PIECE
+    }
+
+    val total = remember(iceTeaTotal, dimsumTotal) {
+        iceTeaTotal + dimsumTotal
     }
 
     Column(
@@ -210,7 +266,24 @@ private fun PaymentSummary(
             Spacer(Modifier.weight(1f))
 
             Text(
-                text = CurrencyUtil.toRupiah(iceTea.toInt()),
+                text = CurrencyUtil.toRupiah(iceTeaTotal.toInt()),
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = "Dimsum",
+                style = MaterialTheme.typography.bodySmall
+            )
+
+            Spacer(Modifier.weight(1f))
+
+            Text(
+                text = CurrencyUtil.toRupiah(dimsumTotal.toInt()),
                 style = MaterialTheme.typography.titleMedium
             )
         }
